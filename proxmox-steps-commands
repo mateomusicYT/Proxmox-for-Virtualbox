@@ -10,16 +10,46 @@ Click OK to save the settings.
 Start the Proxmox VM. 
 Step 2: Configure Proxmox Network Interfaces via Console 
 Once the VM is running, log into the Proxmox console with your root credentials. You will edit the network configuration file using a command-line editor like nano. 
-
+Identify your physical network interface name (e.g., enp0s3, eth0) using the command:
+bash
+ip a
 Note the name of the active physical interface.
 Edit the network interfaces configuration file:
+bash
+nano /etc/network/interfaces
 Configure the file to use a Linux bridge (vmbr0) that bridges to your physical interface. The configuration should look similar to this, using an unused static IP address from your real network's subnet, your network's netmask, and gateway:
 # This file describes the network interfaces available on your system
 # and how to activate them. For more information, see interfaces(5).
 
+source /etc/network/interfaces.d/*
 
+auto lo
+iface lo inet loopback
+
+iface [your_physical_interface_name] inet manual
+
+auto vmbr0
+iface vmbr0 inet static
+        address 192.168.1.10/24 # Replace with an available IP in your network, e.g., 192.168.0.10
+        gateway 192.168.1.1     # Replace with your network's gateway IP
+        bridge-ports [your_physical_interface_name] # e.g., enp0s3
+        bridge-stp off
+        bridge-fd 0
+Make sure to replace [your_physical_interface_name] (including the brackets) with the actual name you found earlier (e.g., enp0s3).
+Save the changes in nano by pressing Ctrl+O, then Enter, and exit with Ctrl+X. 
 Step 3: Apply Configuration and Test 
 Apply the new network configuration using the ifreload command or by restarting the networking service. 
-Reload the network configuration
+Reload the network configuration:
+bash
+ifreload -a
+# or restart the networking service if ifreload doesn't work
+# systemctl restart networking
+Verify the new IP address has been assigned:
+bash
+ip a show vmbr0
+Test connectivity to your gateway and an external website (like Google's DNS server):
+bash
+ping 192.168.1.1 # Replace with your gateway IP
+ping 8.8.8.8
  
 You should now be able to access the Proxmox web GUI from your host machine's browser by navigating to https://[Proxmox_IP_address]:8006 (e.g., https://192.168.1.10:8006). 
