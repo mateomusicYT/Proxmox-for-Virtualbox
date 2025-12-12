@@ -1,0 +1,25 @@
+To connect your Proxmox VM to your real network without the web GUI, you need to configure the network settings manually using the command line within the Proxmox console, and ensure the VirtualBox network adapter is correctly configured for Bridged Adapter mode. 
+Step 1: Configure VirtualBox Network Adapter
+First, ensure the network adapter for your Proxmox VM in VirtualBox settings is set to Bridged Adapter mode. This connects the VM directly to your host's physical network interface. 
+Power off the Proxmox VM.
+In VirtualBox Manager, right-click the Proxmox VM and select Settings.
+Go to the Network section, and in the Adapter 1 tab, check Enable Network Adapter.
+In the Attached to dropdown, select Bridged Adapter.
+Expand the Advanced section and change Promiscuous Mode to Allow All.
+Click OK to save the settings.
+Start the Proxmox VM. 
+Step 2: Configure Proxmox Network Interfaces via Console 
+Once the VM is running, log into the Proxmox console with your root credentials. You will edit the network configuration file using a command-line editor like nano. 
+
+Note the name of the active physical interface.
+Edit the network interfaces configuration file:
+Configure the file to use a Linux bridge (vmbr0) that bridges to your physical interface. The configuration should look similar to this, using an unused static IP address from your real network's subnet, your network's netmask, and gateway:
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+
+Step 3: Apply Configuration and Test 
+Apply the new network configuration using the ifreload command or by restarting the networking service. 
+Reload the network configuration
+ 
+You should now be able to access the Proxmox web GUI from your host machine's browser by navigating to https://[Proxmox_IP_address]:8006 (e.g., https://192.168.1.10:8006). 
